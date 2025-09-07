@@ -247,6 +247,34 @@
     flex-direction:column;
   }
   </style>
+  <script>
+  // Cache-busting only for deployed environment (not local testing)
+  function bustCache() {
+    const isLocal = location.hostname === "localhost" || location.protocol === "file:";
+
+    if (isLocal) return; // skip cache-busting locally
+
+    const timestamp = new Date().getTime();
+
+    // Bust local CSS
+    document.querySelectorAll("link[rel='stylesheet']").forEach(link => {
+      if (!link.href.startsWith("http")) { // only local files
+        link.href = link.href.split("?")[0] + "?v=" + timestamp;
+      }
+    });
+
+    // Bust local JS
+    document.querySelectorAll("script[src]").forEach(script => {
+      if (!script.src.startsWith("http")) { // only local files
+        const src = script.src.split("?")[0];
+        script.src = src + "?v=" + timestamp;
+      }
+    });
+  }
+
+  bustCache();
+  </script>
+  
 </head>
 <body>
   <div class="container">
