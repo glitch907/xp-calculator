@@ -11,8 +11,11 @@
     navigator.serviceWorker.register("service-worker.js");
   }
 </script>
-<link rel="stylesheet" href="style.css?v=__VERSION__">
-<script src="script.js?v=__VERSION__"></script>
+<link id="main-css" rel="stylesheet">
+<script>
+  const css = document.getElementById("main-css");
+  css.href = "style.css?v=" + new Date().getTime();
+</script>
   
   <style>
     body {
