@@ -1,21 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Elixir/Dark Elixir Calculator</title>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const navToggle = document.querySelector(".nav-toggle");
-  const navContainer = document.querySelector(".nav-container");
 
-  if (navToggle) {
-    navToggle.addEventListener("click", () => {
-      navContainer.classList.toggle("active");
-    });
-  }
-});
-</script>
   <style>
+    /* ===== Global ===== */
     body {
       font-family: Arial, sans-serif;
       background: #0d1117;
@@ -23,98 +14,57 @@ document.addEventListener("DOMContentLoaded", () => {
       margin: 0;
       padding: 20px;
     }
-    .calculator {
-      background: #161b22;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 700px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    h2 {
-      margin-bottom: 15px;
-      color: #58a6ff;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 6px;
-  border: 1px solid #30363d;
-  background: #161b22;
-  color: #e6edf3;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
 
-input:focus, select:focus {
-  outline: none;
-  border-color: #58a6ff;
-  box-shadow: 0 0 5px rgba(88, 166, 255, 0.5);
-}
-    .results {
-      margin-top: 20px;
-      background: #0d1117;
-      padding: 15px;
-      border-radius: 10px;
-      white-space: pre-line;
-    }
-    .separator {
-      border-top: 1px solid #30363d;
-      margin: 10px 0;
-    }
-    .copy-btn {
-      margin-top: 10px;
-      background: #484f58;
+    /* ===== Layout / containers ===== */
+    .container {
+      max-width: 950px;
+      margin: auto;
+      background: #161b22;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
     }
     .nav-container {
-    max-width: 950px; /* same as .container */
-    margin: 0 auto 20px auto;
-    background: #161b22;
-    border-radius: 12px;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-    overflow: hidden;
-    margin-top: 0px;
-  }
-  .nav-toggle {
-    width: 100%;
-    padding: 14px;
-    background: #21262d;
-    border: none;
-    color: #e6edf3;
-    font-size: 1.1em;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.3s ease;
-  }
-  .nav-toggle:hover {
-    background: #2d333b;
-  }
-  .nav-menu {
-    max-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: max-height 0.4s ease;
-  }
-  .nav-menu a {
-    padding: 12px 16px;
-    text-decoration: none;
-    color: #e6edf3;
-    transition: background 0.2s ease;
-  }
-  .nav-menu a:hover {
-    background: #238636;
-    color: #fff;
-  }
-  .nav-container.active .nav-menu {
-    max-height: 200px; /* enough for 2–3 links */
-  }
-.btn {
+      max-width: 950px;
+      margin: 0 auto 20px auto;
+      background: #161b22;
+      border-radius: 12px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+
+    /* ===== Header ===== */
+    .header { text-align: center; margin-bottom: 25px; }
+    .header h1 { margin: 0; font-size: 2em; }
+    .sub { font-size: 0.9em; color: #8b949e; }
+
+    /* ===== Grid / form layout ===== */
+    .section { margin-bottom: 25px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+    }
+    .group { display: flex; flex-direction: column; }
+
+    /* ===== Inputs & selects (styled the same) ===== */
+    label { font-size: 0.85em; margin-bottom: 6px; }
+    input, select {
+      padding: 10px;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      background: #0d1117;
+      color: #e6edf3;
+      font-size: 0.95em;
+      box-sizing: border-box;
+    }
+    input:invalid, select:invalid {
+      border-color: #f85149;
+      background: #1a0f0f;
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
       background: #238636;
       color: white;
       padding: 12px 24px;
@@ -125,235 +75,413 @@ input:focus, select:focus {
       transition: background 0.2s;
       margin-top: 10px;
     }
-    .btn:hover:not(:disabled) {
-      background: #2ea043;
+    .btn:hover:not(:disabled) { background: #2ea043; }
+    .btn:disabled { background: #30363d; cursor: not-allowed; }
+
+    /* ===== Output / results ===== */
+    .output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #0d1117;
+      border-radius: 12px;
+      font-size: 0.95em;
+      /*white-space: pre-line;      preserve \n from JS string */
+      line-height: 1.6;        /* increased vertical spacing */
+      letter-spacing: 0.3px;
     }
-    .btn:disabled {
-      background: #30363d;
-      cursor: not-allowed;
+
+    /* ===== Inline error & copy status ===== */
+    .hint {
+      color: #f85149;
+      font-size: 0.8em;
+      margin-top: 6px;
+      display: none;          /* shown when there's an error */
+    }
+    .copy-status {
+      margin-top: 8px;
+      font-size: 0.9em;
+      display: none;
+    }
+    .success { color: #2ea043; }
+    .failure { color: #f85149; }
+
+    /* ===== Nav styles ===== */
+    .nav-toggle {
+      width: 100%;
+      padding: 14px;
+      background: #21262d;
+      border: none;
+      color: #e6edf3;
+      font-size: 1.1em;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.3s ease;
+    }
+    .nav-toggle:hover { background: #2d333b; }
+    .nav-menu {
+      max-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: max-height 0.4s ease;
+    }
+    .nav-menu a {
+      padding: 12px 16px;
+      text-decoration: none;
+      color: #e6edf3;
+      transition: background 0.2s ease;
+    }
+    .nav-menu a:hover { background: #238636; color: #fff; }
+    .nav-container.active .nav-menu { max-height: 200px; }
+
+    /* responsive tweaks (small screens) */
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .container { padding: 18px; }
     }
   </style>
-    <script>
-  // Cache-busting only for deployed environment (not local testing)
-  function bustCache() {
-    const isLocal = location.hostname === "localhost" || location.protocol === "file:";
-
-    if (isLocal) return; // skip cache-busting locally
-
-    const timestamp = new Date().getTime();
-
-    // Bust local CSS
-    document.querySelectorAll("link[rel='stylesheet']").forEach(link => {
-      if (!link.href.startsWith("http")) { // only local files
-        link.href = link.href.split("?")[0] + "?v=" + timestamp;
-      }
-    });
-
-    // Bust local JS
-    document.querySelectorAll("script[src]").forEach(script => {
-      if (!script.src.startsWith("http")) { // only local files
-        const src = script.src.split("?")[0];
-        script.src = src + "?v=" + timestamp;
-      }
-    });
-  }
-
-  bustCache();
-  </script>
 </head>
 <body>
-<!-- Navigation Menu -->
-<div class="nav-container">
-  <button class="nav-toggle">☰ Menu</button>
-  <nav class="nav-menu">
-    <a href="index.html">🏠 Home</a>
-    <a href="elixir-calculator.html">⚔️ Elixir/Dark Elixir</a>
-  </nav>
-</div>
-  <div class="calculator">
-    <h2>⚔️ Elixir/Dark Elixir Calculator</h2>
-    <label>⭐ Current Level:
-  <input type="number" id="currentLevel" value="0" min="0">
-</label>
-    <label>🏰 Clan Castle Level:
-      <select id="ccLevel" onchange="updateConstraints()">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-      </select>
-    </label>
-    <label>👥 Total Accounts:
-      <input type="number" id="accounts" value="1" min="1">
-    </label>
-    <label>🔁 Iterations per Day:
-      <input type="number" id="iterations" value="1" min="1">
-    </label>
-    <label>📅 Number of Days:
-      <input type="number" id="days" value="1" min="1">
-    </label>
-
-    <div id="troopInputs">
-      <label>⚔️ Elixir Troops (spaces): <input type="number" id="elixirTroops" value="0" min="0"></label>
-      <label>🌑 Dark Troops (spaces): <input type="number" id="darkTroops" value="0" min="0"></label>
-      <label>🧪 Elixir Spells (spaces): <input type="number" id="elixirSpells" value="0" min="0"></label>
-      <label>☠️ Dark Spells (spaces): <input type="number" id="darkSpells" value="0" min="0"></label>
-      <label>🛡️ Siege Machines: <input type="number" id="siege" value="0" min="0"></label>
-    </div>
-
-  <button class="btn" onclick="calculateCosts()">Calculate</button>
-  <button class="btn" onclick="copyResults()">Copy Results</button>
-
-    <div id="results" class="results"></div>
-
+  <!-- Navigation -->
+  <div class="nav-container">
+    <button class="nav-toggle">☰ Menu</button>
+    <nav class="nav-menu">
+      <a href="index.html">🏠 Home</a>
+      <a href="elixir-calculator.html">⚔️ Elixir/Dark Elixir</a>
+    </nav>
   </div>
 
-<script>
-  const ccData = {
-    1:{troops:10,spells:0,siege:0},
-    2:{troops:15,spells:0,siege:0},
-    3:{troops:20,spells:0,siege:0},
-    4:{troops:25,spells:1,siege:0},
-    5:{troops:30,spells:1,siege:0},
-    6:{troops:35,spells:1,siege:1},
-    7:{troops:35,spells:2,siege:1},
-    8:{troops:40,spells:2,siege:1},
-    9:{troops:45,spells:2,siege:1},
-    10:{troops:45,spells:3,siege:1},
-    11:{troops:50,spells:3,siege:1},
-    12:{troops:50,spells:3,siege:2},
-    13:{troops:55,spells:3,siege:2}
-  };
+  <!-- Main app container -->
+  <div class="container">
+    <div class="header">
+      <h1>⚔️ Elixir / Dark Elixir Calculator</h1>
+      <p class="sub">Plan donations, XP gain & costs</p>
+    </div>
 
-  function xpForNextLevel(level) {
-    // example curve: adjust this to your real formula
-    return 1000 + (level * 100);
-  }
+    <!-- Inputs -->
+    <div class="section grid">
+      <div class="group">
+        <label>⭐ Current Level</label>
+        <input type="number" id="currentLevel" value="0" min="0">
+        <div class="hint" id="currentLevelError"></div>
+      </div>
 
-  function xpToLevel(currentLevel, gainedXP) {
-    let totalXP = gainedXP; 
-    let level = currentLevel;
+      <div class="group">
+        <label>🏰 Clan Castle Level</label>
+        <select id="ccLevel" onchange="updateConstraints()">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+          <option value="13">13</option>
+        </select>
+        <div class="hint" id="ccLevelError"></div>
+      </div>
 
-    while (totalXP >= xpForNextLevel(level)) {
-      totalXP -= xpForNextLevel(level);
-      level++;
+      <div class="group">
+        <label>👥 Total Accounts</label>
+        <input type="number" id="accounts" value="1" min="1">
+        <div class="hint" id="accountsError"></div>
+      </div>
+
+      <div class="group">
+        <label>🔁 Iterations per Day</label>
+        <input type="number" id="iterations" value="1" min="1">
+        <div class="hint" id="iterationsError"></div>
+      </div>
+
+      <div class="group">
+        <label>📅 Number of Days</label>
+        <input type="number" id="days" value="1" min="1">
+        <div class="hint" id="daysError"></div>
+      </div>
+    </div>
+
+    <div class="section grid">
+      <div class="group">
+        <label>⚔️ Elixir Troops</label>
+        <input type="number" id="elixirTroops" value="0" min="0">
+        <div class="hint" id="elixirTroopsError"></div>
+      </div>
+      <div class="group">
+        <label>🌑 Dark Troops</label>
+        <input type="number" id="darkTroops" value="0" min="0">
+        <div class="hint" id="darkTroopsError"></div>
+      </div>
+      <div class="group">
+        <label>🧪 Elixir Spells</label>
+        <input type="number" id="elixirSpells" value="0" min="0">
+        <div class="hint" id="elixirSpellsError"></div>
+      </div>
+      <div class="group">
+        <label>☠️ Dark Spells</label>
+        <input type="number" id="darkSpells" value="0" min="0">
+        <div class="hint" id="darkSpellsError"></div>
+      </div>
+      <div class="group">
+        <label>🛡️ Siege Machines</label>
+        <input type="number" id="siege" value="0" min="0">
+        <div class="hint" id="siegeError"></div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="calculateCosts()">Calculate</button>
+    <button class="btn" onclick="copyResults()">Copy Results</button>
+    <div id="copyStatus" class="copy-status"></div>
+
+    <div id="results" class="output"></div>
+  </div>
+
+  <!-- Cache-busting (only affects local files when deployed) -->
+  <script>
+    function bustCache() {
+      const isLocal = location.hostname === "localhost" || location.protocol === "file:";
+      if (isLocal) return;
+
+      const timestamp = new Date().getTime();
+      document.querySelectorAll("link[rel='stylesheet']").forEach(link => {
+        if (!link.href.startsWith("http")) {
+          link.href = link.href.split("?")[0] + "?v=" + timestamp;
+        }
+      });
+      document.querySelectorAll("script[src]").forEach(script => {
+        if (!script.src.startsWith("http")) {
+          const src = script.src.split("?")[0];
+          script.src = src + "?v=" + timestamp;
+        }
+      });
+    }
+    bustCache();
+  </script>
+
+  <!-- Main logic -->
+  <script>
+    // Clan Castle configuration
+    const ccData = {
+      1:{troops:10,spells:0,siege:0},
+      2:{troops:15,spells:0,siege:0},
+      3:{troops:20,spells:0,siege:0},
+      4:{troops:25,spells:1,siege:0},
+      5:{troops:30,spells:1,siege:0},
+      6:{troops:35,spells:1,siege:1},
+      7:{troops:35,spells:2,siege:1},
+      8:{troops:40,spells:2,siege:1},
+      9:{troops:45,spells:2,siege:1},
+      10:{troops:45,spells:3,siege:1},
+      11:{troops:50,spells:3,siege:1},
+      12:{troops:50,spells:3,siege:2},
+      13:{troops:55,spells:3,siege:2}
+    };
+
+    // XP curve helper (adjust if you have a different real formula)
+    function xpForNextLevel(level) {
+      return 1000 + (level * 100);
     }
 
-    return {
-      level: level,
-      leftoverXP: totalXP
-    };
-  }
+    // Convert gained XP into levels (returns new level + leftover)
+    function xpToLevel(currentLevel, gainedXP) {
+      let totalXP = gainedXP;
+      let level = currentLevel;
 
-  function updateConstraints() {
-    const level = parseInt(document.getElementById("ccLevel").value);
-    const {troops,spells,siege} = ccData[level];
-    document.getElementById("elixirTroops").max = troops;
-    document.getElementById("darkTroops").max = troops;
-    document.getElementById("elixirSpells").max = spells;
-    document.getElementById("darkSpells").max = spells;
-    document.getElementById("siege").max = siege;
+      while (totalXP >= xpForNextLevel(level)) {
+        totalXP -= xpForNextLevel(level);
+        level++;
+      }
 
-    // defaults: max elixir, 0 dark
-    document.getElementById("elixirTroops").value = troops;
-    document.getElementById("darkTroops").value = 0;
-    document.getElementById("elixirSpells").value = spells;
-    document.getElementById("darkSpells").value = 0;
-    document.getElementById("siege").value = siege;
-  }
+      return { level, leftoverXP: totalXP };
+    }
 
-  function calculateCosts() {
-    const currentLevel = parseInt(document.getElementById("currentLevel").value)||0;
-    const level = parseInt(document.getElementById("ccLevel").value);
-    const accounts = parseInt(document.getElementById("accounts").value)||1;
-    const iterations = parseInt(document.getElementById("iterations").value)||1;
-    const days = parseInt(document.getElementById("days").value)||1;
+    // Show inline error for a specific input / hint pair and auto-hide after 2s
+    function setFieldError(inputEl, hintEl, message) {
+      if (!inputEl || !hintEl) return;
+      hintEl.textContent = message;
+      hintEl.style.display = 'block';
+      inputEl.style.borderColor = '#f85149';
+      // auto-hide and restore
+      setTimeout(() => {
+        hintEl.style.display = 'none';
+        inputEl.style.borderColor = '#30363d';
+      }, 2000);
+    }
 
-    const elixirTroops = parseInt(document.getElementById("elixirTroops").value)||0;
-    const darkTroops = parseInt(document.getElementById("darkTroops").value)||0;
-    const elixirSpells = parseInt(document.getElementById("elixirSpells").value)||0;
-    const darkSpells = parseInt(document.getElementById("darkSpells").value)||0;
-    const siege = parseInt(document.getElementById("siege").value)||0;
+    // Update CC constraints (max values & defaults) based on selected ccLevel
+    function updateConstraints() {
+      const level = parseInt(document.getElementById("ccLevel").value) || 1;
+      const { troops, spells, siege } = ccData[level] || ccData[1];
 
-    const max = ccData[level];
-    if (elixirTroops + darkTroops > max.troops) {alert("Troops exceed limit!"); return;}
-    if (elixirSpells + darkSpells > max.spells) {alert("Spells exceed limit!"); return;}
+      const elixirTroopsEl = document.getElementById("elixirTroops");
+      const darkTroopsEl = document.getElementById("darkTroops");
+      const elixirSpellsEl = document.getElementById("elixirSpells");
+      const darkSpellsEl = document.getElementById("darkSpells");
+      const siegeEl = document.getElementById("siege");
 
-    const elixirCostDonation = (Math.ceil(elixirTroops/2)*3000) + (elixirSpells*9000) + (siege*45000);
-    const darkCostDonation = (Math.ceil(darkTroops/2)*45) + (darkSpells*135);
+      elixirTroopsEl.max = troops;
+      darkTroopsEl.max = troops;
+      elixirSpellsEl.max = spells;
+      darkSpellsEl.max = spells;
+      siegeEl.max = siege;
 
-    const xpDonation = elixirTroops*1 + darkTroops*1 + elixirSpells*5 + darkSpells*5 + siege*30;
+      // sensible defaults: fill elixir slots by default
+      elixirTroopsEl.value = troops;
+      darkTroopsEl.value = 0;
+      elixirSpellsEl.value = spells;
+      darkSpellsEl.value = 0;
+      siegeEl.value = siege;
+    }
 
-    const iterationMultiplier = accounts;
-    const dayMultiplier = accounts*iterations;
-    const daysMultiplier = accounts*iterations*days;
+    // Main calculation (validates inline instead of alert)
+    function calculateCosts() {
+      // clear previous inline hints (not necessary if setFieldError manages them,
+      // but ensure we don't show stale messages)
+      document.querySelectorAll(".hint").forEach(h => { h.textContent = ""; h.style.display = 'none'; });
 
-    const single = xpToLevel(currentLevel, xpDonation);
-    const iteration = xpToLevel(currentLevel, xpDonation*iterationMultiplier);
-    const daily = xpToLevel(currentLevel, xpDonation*dayMultiplier);
-    const total = xpToLevel(currentLevel, xpDonation*daysMultiplier);
+      const currentLevel = parseInt(document.getElementById("currentLevel").value) || 0;
+      const level = parseInt(document.getElementById("ccLevel").value) || 1;
+      const accounts = parseInt(document.getElementById("accounts").value) || 1;
+      const iterations = parseInt(document.getElementById("iterations").value) || 1;
+      const days = parseInt(document.getElementById("days").value) || 1;
 
-    let out = `📥 User Input:
-⭐ Current Level: ${currentLevel}
-🏰 Clan Castle Level: ${level}
-👥 Total Accounts: ${accounts}
-🔁 Iterations per Day: ${iterations}
-📅 Days: ${days}
-⚔️ Elixir Troops: ${elixirTroops}, 🌑 Dark Troops: ${darkTroops}, 🧪 Elixir Spells: ${elixirSpells}, ☠️ Dark Spells: ${darkSpells}, 🛡️ Siege: ${siege}
+      const elixirTroops = parseInt(document.getElementById("elixirTroops").value) || 0;
+      const darkTroops = parseInt(document.getElementById("darkTroops").value) || 0;
+      const elixirSpells = parseInt(document.getElementById("elixirSpells").value) || 0;
+      const darkSpells = parseInt(document.getElementById("darkSpells").value) || 0;
+      const siege = parseInt(document.getElementById("siege").value) || 0;
 
-📊 Results:
--- In one donation (1 account) --
+      const max = ccData[level];
+
+      // Validation: troops
+      if (elixirTroops + darkTroops > max.troops) {
+        setFieldError(
+          document.getElementById("darkTroops"),
+          document.getElementById("darkTroopsError"),
+          `⚠️ Troops exceed limit (${max.troops})`
+        );
+        return;
+      }
+
+      // Validation: spells
+      if (elixirSpells + darkSpells > max.spells) {
+        setFieldError(
+          document.getElementById("darkSpells"),
+          document.getElementById("darkSpellsError"),
+          `⚠️ Spells exceed limit (${max.spells})`
+        );
+        return;
+      }
+
+      // Costs & XP calculations (same logic as before)
+      const elixirCostDonation = (Math.ceil(elixirTroops/2)*3000) + (elixirSpells*9000) + (siege*45000);
+      const darkCostDonation = (Math.ceil(darkTroops/2)*45) + (darkSpells*135);
+      const xpDonation = elixirTroops*1 + darkTroops*1 + elixirSpells*5 + darkSpells*5 + siege*30;
+
+      const iterationMultiplier = accounts;
+      const dayMultiplier = accounts * iterations;
+      const daysMultiplier = accounts * iterations * days;
+
+      const single = xpToLevel(currentLevel, xpDonation);
+      const iteration = xpToLevel(currentLevel, xpDonation * iterationMultiplier);
+      const daily = xpToLevel(currentLevel, xpDonation * dayMultiplier);
+      const total = xpToLevel(currentLevel, xpDonation * daysMultiplier);
+
+      // Build nicely spaced output (white-space pre-line handles newlines)
+      const out = 
+`<strong>📥 User Input:</strong><br>
+⭐ Current Level: ${currentLevel}<br>
+🏰 Clan Castle Level: ${level}<br>
+👥 Total Accounts: ${accounts}<br>
+🔁 Iterations per Day: ${iterations}<br>
+📅 Days: ${days}<br>
+⚔️ Elixir Troops: ${elixirTroops}, 🌑 Dark Troops: ${darkTroops}, 🧪 Elixir Spells: ${elixirSpells}, ☠️ Dark Spells: ${darkSpells}, 🛡️ Siege: ${siege}<br>
+
+<br><strong>📊 Output (In one iteration):</strong><br>
+⚡ Elixir: ${(elixirCostDonation * iterationMultiplier).toLocaleString()}<br>
+🌑 Dark Elixir: ${(darkCostDonation * iterationMultiplier).toLocaleString()}<br>
+⭐ XP: ${(xpDonation * iterationMultiplier).toLocaleString()}<br>
+📈 Level Reached: ${iteration.level}<br>
+💠 Leftover XP: ${iteration.leftoverXP.toLocaleString()}<br>
+        
+<br><strong>📊 Output (In ${days} day(s)):</strong><br>
+⚡ Elixir: ${(elixirCostDonation * daysMultiplier).toLocaleString()}<br>
+🌑 Dark Elixir: ${(darkCostDonation * daysMultiplier).toLocaleString()}<br>
+⭐ XP: ${(xpDonation * daysMultiplier).toLocaleString()}<br>
+📈 Level Reached: ${total.level}<br>
+💠 Leftover XP: ${total.leftoverXP.toLocaleString()}<br>`;
+
+/*In one donation
 ⚡ Elixir: ${elixirCostDonation.toLocaleString()}
 🌑 Dark Elixir: ${darkCostDonation.toLocaleString()}
 ⭐ XP: ${xpDonation.toLocaleString()}
 📈 Level Reached: ${single.level}
-💠 Leftover XP: ${single.leftoverXP.toLocaleString()}
-
-────────────────────
--- In one iteration (all accounts) --
-⚡ Elixir: ${(elixirCostDonation*iterationMultiplier).toLocaleString()}
-🌑 Dark Elixir: ${(darkCostDonation*iterationMultiplier).toLocaleString()}
-⭐ XP: ${(xpDonation*iterationMultiplier).toLocaleString()}
-📈 Level Reached: ${iteration.level}
-💠 Leftover XP: ${iteration.leftoverXP.toLocaleString()}
-
-────────────────────
--- In one day --
-⚡ Elixir: ${(elixirCostDonation*dayMultiplier).toLocaleString()}
-🌑 Dark Elixir: ${(darkCostDonation*dayMultiplier).toLocaleString()}
-⭐ XP: ${(xpDonation*dayMultiplier).toLocaleString()}
+💠 Leftover XP: ${single.leftoverXP.toLocaleString()}*/
+        
+/*In one day
+⚡ Elixir: ${(elixirCostDonation * dayMultiplier).toLocaleString()}
+🌑 Dark Elixir: ${(darkCostDonation * dayMultiplier).toLocaleString()}
+⭐ XP: ${(xpDonation * dayMultiplier).toLocaleString()}
 📈 Level Reached: ${daily.level}
-💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}
+💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}*/
 
-────────────────────
--- In ${days} days --
-⚡ Elixir: ${(elixirCostDonation*daysMultiplier).toLocaleString()}
-🌑 Dark Elixir: ${(darkCostDonation*daysMultiplier).toLocaleString()}
-⭐ XP: ${(xpDonation*daysMultiplier).toLocaleString()}
-📈 Level Reached: ${total.level}
-💠 Leftover XP: ${total.leftoverXP.toLocaleString()}
-`;
+      document.getElementById("results").innerHTML = out;
+    }
 
-    document.getElementById("results").textContent = out;
+    // Copy results -> clipboard with inline success/failure msg (auto-hide 2s)
+function copyResults() {
+  const resultsEl = document.getElementById("results");
+  const status = document.getElementById("copyStatus");
+
+  if (!resultsEl.innerHTML.trim()) {
+    status.textContent = "❌ Nothing to copy!";
+    status.className = "copy-status failure";
+    status.style.display = "block";
+    setTimeout(() => status.style.display = "none", 2000);
+    return;
   }
 
-  function copyResults() {
-    const results = document.getElementById("results").textContent;
-    navigator.clipboard.writeText(results).then(()=>alert("Results copied!"));
+  // Create a temporary div to hold HTML
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = resultsEl.innerHTML;
+  document.body.appendChild(tempDiv);
+
+  // Select content
+  const range = document.createRange();
+  range.selectNodeContents(tempDiv);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  // Copy and cleanup
+  try {
+    document.execCommand("copy");
+    status.textContent = "✅ Results copied!";
+    status.className = "copy-status success";
+  } catch {
+    status.textContent = "❌ Copy failed!";
+    status.className = "copy-status failure";
   }
 
-  // initialize defaults when page loads
-  updateConstraints();
-</script>
+  sel.removeAllRanges();
+  document.body.removeChild(tempDiv);
+  status.style.display = "block";
+  setTimeout(() => status.style.display = "none", 2000);
+}
 
+
+    // Nav toggle (keeps menu accessible on mobile)
+    (function attachNavToggle() {
+      const navToggle = document.querySelector(".nav-toggle");
+      const navContainer = document.querySelector(".nav-container");
+      if (navToggle && navContainer) {
+        navToggle.addEventListener("click", () => {
+          navContainer.classList.toggle("active");
+        });
+      }
+    })();
+
+    // Initialize constraints after DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+      // ensure ccLevel and inputs exist then set defaults
+      if (document.getElementById("ccLevel")) updateConstraints();
+    });
+  </script>
 </body>
 </html>
