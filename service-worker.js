@@ -1,33 +1,65 @@
-// Get VERSION from query string (default fallback)
-const VERSION = new URL(location).searchParams.get("v") || "v1";
-const CACHE_NAME = "xp-calculator-cache-" + VERSION;
+// service-worker.js
+const VERSION = new URL(location).searchParams.get("v") || "v2";
+const CACHE_NAME = `clan-castle-xp-cache-${VERSION}`;
 
 const ASSETS_TO_CACHE = [
   "./index.html",
+  "./elixir-calculator.html",
   "./manifest.json?v=" + VERSION,
   "./icons/icon-192.png?v=" + VERSION,
-  "./icons/icon-512.png?v=" + VERSION
+  "./icons/icon-512.png?v=" + VERSION,
+  "./service-worker.js?v=" + VERSION,
+  // Add any other local CSS or JS files your app needs
 ];
 
-// Install: cache core assets
 self.addEventListener("install", event => {
+  console.log(`[ServiceWorker] Installing version ${VERSION}`);
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => {
+      console.log("[ServiceWorker] Caching app assets");
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
+  self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener("activate", event => {
+  console.log(`[ServiceWorker] Activating version ${VERSION}`);
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) {
+            console.log(`[ServiceWorker] Deleting old cache: ${name}`);
+            return caches.delete(name);
+          }
+        })
+      );
+    })
   );
+  self.clients.claim();
 });
 
-// Fetch: network first, fallback to cache
 self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    caches.match(event.request).then(cachedResponse => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request)
+        .then(response => {
+          // Only cache successful requests
+          if (!response || response.status !== 200 || response.type !== "basic") {
+            return response;
+          }
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Optionally return a fallback page/image here if offline
+        });
+    })
   );
 });

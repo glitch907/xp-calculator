@@ -7,9 +7,8 @@
   <link rel="manifest" href="manifestE.json?v=v2">
   <link rel="icon" href="icons/iconE-192.png?v=v2">
   <link rel="apple-touch-icon" href="icons/iconE-512.png?v=v2">
-  <link rel="stylesheet" href="style.css">
   <script>
-    const VERSION = "v2"; // ✅ Only update here
+    const VERSION = "v3"; // ✅ Only update here
 
     function bustCache() {
       const isLocal = location.hostname === "localhost" || location.protocol === "file:";
@@ -41,7 +40,6 @@
     }
     bustCache();
   </script>
-  <script src="script.js"></script>
   <style>
     /* ===== Global ===== */
     body {
@@ -294,16 +292,26 @@
     }
 
     // Convert gained XP into levels (returns new level + leftover)
+    // Level caps at 500
     function xpToLevel(currentLevel, gainedXP) {
-      let totalXP = gainedXP;
-      let level = currentLevel;
+       let totalXP = gainedXP;
+       let level = currentLevel;
 
-      while (totalXP >= xpForNextLevel(level)) {
-        totalXP -= xpForNextLevel(level);
-        level++;
-      }
+       while (totalXP >= xpForNextLevel(level) && level < 500) {
+          totalXP -= xpForNextLevel(level);
+          level++;
+       }
 
-      return { level, leftoverXP: totalXP };
+       // If we've reached max level, leftover XP includes any remaining
+       if (level >= 500) {
+          level = 500;
+       }
+
+       return { level, leftoverXP: totalXP };
+    }
+    // Helper to format level display
+       function formatLevel(level) {
+       return level >= 500 ? "500 (MAX LEVEL)" : level;
     }
 
     // Show inline error for a specific input / hint pair and auto-hide after 2s
@@ -408,33 +416,33 @@
 📅 Days: ${days}<br>
 ⚔️ Elixir Troops: ${elixirTroops}, 🌑 Dark Troops: ${darkTroops}, 🧪 Elixir Spells: ${elixirSpells}, ☠️ Dark Spells: ${darkSpells}, 🛡️ Siege: ${siege}<br>
 
-<br><strong>📊 Output (In one iteration):</strong><br>
-⚡ Elixir: ${(elixirCostDonation * iterationMultiplier).toLocaleString()}<br>
-🌑 Dark Elixir: ${(darkCostDonation * iterationMultiplier).toLocaleString()}<br>
-⭐ XP: ${(xpDonation * iterationMultiplier).toLocaleString()}<br>
-📈 Level Reached: ${iteration.level}<br>
-💠 Leftover XP: ${iteration.leftoverXP.toLocaleString()}<br>
+In one day
+⚡ Elixir: ${(elixirCostDonation * dayMultiplier).toLocaleString()}
+🌑 Dark Elixir: ${(darkCostDonation * dayMultiplier).toLocaleString()}
+⭐ XP: ${(xpDonation * dayMultiplier).toLocaleString()}
+📈 Level Reached: ${formatLevel(daily.level)}
+💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}
         
-<br><strong>📊 Output (In ${days} day(s)):</strong><br>
+<br><strong>📊 Output (In ${days} days):</strong><br>
 ⚡ Elixir: ${(elixirCostDonation * daysMultiplier).toLocaleString()}<br>
 🌑 Dark Elixir: ${(darkCostDonation * daysMultiplier).toLocaleString()}<br>
 ⭐ XP: ${(xpDonation * daysMultiplier).toLocaleString()}<br>
-📈 Level Reached: ${total.level}<br>
+📈 Level Reached: ${formatLevel(total.level)}<br>
 💠 Leftover XP: ${total.leftoverXP.toLocaleString()}<br>`;
 
 /*In one donation
 ⚡ Elixir: ${elixirCostDonation.toLocaleString()}
 🌑 Dark Elixir: ${darkCostDonation.toLocaleString()}
 ⭐ XP: ${xpDonation.toLocaleString()}
-📈 Level Reached: ${single.level}
+📈 Level Reached: ${formatLevel(single.level)}
 💠 Leftover XP: ${single.leftoverXP.toLocaleString()}*/
         
-/*In one day
-⚡ Elixir: ${(elixirCostDonation * dayMultiplier).toLocaleString()}
-🌑 Dark Elixir: ${(darkCostDonation * dayMultiplier).toLocaleString()}
-⭐ XP: ${(xpDonation * dayMultiplier).toLocaleString()}
-📈 Level Reached: ${daily.level}
-💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}*/
+/*<br><strong>📊 Output (In one iteration):</strong><br>
+⚡ Elixir: ${(elixirCostDonation * iterationMultiplier).toLocaleString()}<br>
+🌑 Dark Elixir: ${(darkCostDonation * iterationMultiplier).toLocaleString()}<br>
+⭐ XP: ${(xpDonation * iterationMultiplier).toLocaleString()}<br>
+📈 Level Reached: ${formatLevel(iteration.level)}<br>
+💠 Leftover XP: ${iteration.leftoverXP.toLocaleString()}<br>*/        
 
       document.getElementById("results").innerHTML = out;
     }
