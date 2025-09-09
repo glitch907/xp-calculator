@@ -7,7 +7,6 @@
   <link rel="manifest" href="manifest.json?v=v2">
   <link rel="icon" href="icons/icon-192.png?v=v2">
   <link rel="apple-touch-icon" href="icons/icon-512.png?v=v2">
-  <link rel="stylesheet" href="style.css">
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const navToggle = document.querySelector(".nav-toggle");
@@ -21,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script>
-    const VERSION = "v2"; // ✅ Only update here
+    const VERSION = "v3"; // ✅ Only update here
 
     function bustCache() {
       const isLocal = location.hostname === "localhost" || location.protocol === "file:";
@@ -41,6 +40,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
+      // ✅ Bust icons (favicon + apple-touch)
+      document.querySelectorAll("link[rel='icon'], link[rel='apple-touch-icon']").forEach(icon => {
+        if (!icon.href.startsWith("http")) {
+          icon.href = icon.href.split("?")[0] + "?v=" + timestamp;
+        }
+      });
+
       // Register service worker with VERSION
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -52,8 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     bustCache();
-  </script>
-  <script src="script.js"></script>
+</script>
+
 
   <style>
     body {
