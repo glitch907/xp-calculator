@@ -416,12 +416,12 @@
 📅 Days: ${days}<br>
 ⚔️ Elixir Troops: ${elixirTroops}, 🌑 Dark Troops: ${darkTroops}, 🧪 Elixir Spells: ${elixirSpells}, ☠️ Dark Spells: ${darkSpells}, 🛡️ Siege: ${siege}<br>
 
-In one day
-⚡ Elixir: ${(elixirCostDonation * dayMultiplier).toLocaleString()}
-🌑 Dark Elixir: ${(darkCostDonation * dayMultiplier).toLocaleString()}
-⭐ XP: ${(xpDonation * dayMultiplier).toLocaleString()}
-📈 Level Reached: ${formatLevel(daily.level)}
-💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}
+<br><strong>📊 Output (In one day):</strong><br>
+⚡ Elixir: ${(elixirCostDonation * dayMultiplier).toLocaleString()}<br>
+🌑 Dark Elixir: ${(darkCostDonation * dayMultiplier).toLocaleString()}<br>
+⭐ XP: ${(xpDonation * dayMultiplier).toLocaleString()}<br>
+📈 Level Reached: ${formatLevel(daily.level)}<br>
+💠 Leftover XP: ${daily.leftoverXP.toLocaleString()}<br>
         
 <br><strong>📊 Output (In ${days} days):</strong><br>
 ⚡ Elixir: ${(elixirCostDonation * daysMultiplier).toLocaleString()}<br>
@@ -430,12 +430,12 @@ In one day
 📈 Level Reached: ${formatLevel(total.level)}<br>
 💠 Leftover XP: ${total.leftoverXP.toLocaleString()}<br>`;
 
-/*In one donation
-⚡ Elixir: ${elixirCostDonation.toLocaleString()}
-🌑 Dark Elixir: ${darkCostDonation.toLocaleString()}
-⭐ XP: ${xpDonation.toLocaleString()}
-📈 Level Reached: ${formatLevel(single.level)}
-💠 Leftover XP: ${single.leftoverXP.toLocaleString()}*/
+/*<br><strong>📊 Output (In one donation):</strong><br>
+⚡ Elixir: ${elixirCostDonation.toLocaleString()}<br>
+🌑 Dark Elixir: ${darkCostDonation.toLocaleString()}<br>
+⭐ XP: ${xpDonation.toLocaleString()}<br>
+📈 Level Reached: ${formatLevel(single.level)}<br>
+💠 Leftover XP: ${single.leftoverXP.toLocaleString()}<br>*/
         
 /*<br><strong>📊 Output (In one iteration):</strong><br>
 ⚡ Elixir: ${(elixirCostDonation * iterationMultiplier).toLocaleString()}<br>
