@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clan Castle XP Calculator</title>
+  <link rel="manifest" href="manifest.json?v=v2">
+  <link rel="icon" href="icons/icon-192.png?v=v2">
+  <link rel="apple-touch-icon" href="icons/icon-512.png?v=v2">
+  <link rel="stylesheet" href="style.css">
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const navToggle = document.querySelector(".nav-toggle");
+  const navContainer = document.querySelector(".nav-container");
+
+  if (navToggle) {
+    navToggle.addEventListener("click", () => {
+      navContainer.classList.toggle("active");
+    });
+  }
+});
+</script>
+<script>
+    const VERSION = "v2"; // ✅ Only update here
+
+    function bustCache() {
+      const isLocal = location.hostname === "localhost" || location.protocol === "file:";
+      if (isLocal) return;
+
+      const timestamp = new Date().getTime();
+
+      // Always bust CSS & JS
+      document.querySelectorAll("link[rel='stylesheet']").forEach(link => {
+        if (!link.href.startsWith("http")) {
+          link.href = link.href.split("?")[0] + "?v=" + timestamp;
+        }
+      });
+      document.querySelectorAll("script[src]").forEach(script => {
+        if (!script.src.startsWith("http")) {
+          script.src = script.src.split("?")[0] + "?v=" + timestamp;
+        }
+      });
+
+      // Register service worker with VERSION
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (let reg of registrations) {
+            reg.unregister();
+          }
+          navigator.serviceWorker.register("./service-worker.js?v=" + VERSION);
+        });
+      }
+    }
+    bustCache();
+  </script>
+  <script src="script.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 950px;
+      margin: auto;
+      background: #161b22;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    .sub {
+      font-size: 0.9em;
+      color: #8b949e;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+    }
+    .group {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-size: 0.85em;
+      margin-bottom: 6px;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      background: #0d1117;
+      color: #e6edf3;
+      font-size: 0.95em;
+    }
+    input:invalid {
+      border-color: #f85149;
+      background: #1a0f0f;
+    }
+    .btn {
+      background: #238636;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+    .btn:hover:not(:disabled) {
+      background: #2ea043;
+    }
+    .btn:disabled {
+      background: #30363d;
+      cursor: not-allowed;
+    }
+    .output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #0d1117;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 0.95em;
+    }
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .card {
+      flex: 1;
+      background: #0d1117;
+      padding: 15px;
+      border-radius: 12px;
+      min-width: 140px;
+      box-shadow: inset 0 0 5px rgba(255,255,255,0.05);
+    }
+    .stat {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-top: 8px;
+      color: #79c0ff;
+    }
+    .breakdown {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 0.9em;
+      line-height: 1.5;
+      margin-top: 12px;
+      box-shadow: inset 0 0 5px rgba(255,255,255,0.05);
+    }
+    .pill {
+      display: inline-block;
+      background: #30363d;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-right: 6px;
+    }
+    .hint {
+      color: #f85149;
+      font-size: 0.8em;
+      margin-top: 3px;
+    }
+    .collapsible {
+      cursor: pointer;
+      padding: 10px;
+      background: #21262d;
+      border: none;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 1em;
+      margin-bottom: 10px;
+      color: #e6edf3;
+    }
+    .collapsible:after {
+      content: '▼';
+      float: right;
+    }
+    .collapsible.active:after {
+      content: '▲';
+    }
+    .content {
+  display: none;
+  padding: 15px;
+  background: #161b22; /* slightly lighter than card */
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+    .milestone {
+      margin-top: 20px;
+      padding: 15px;
+      background: #0d1117;
+      border-radius: 12px;
+      font-size: 0.9em;
+      box-shadow: inset 0 0 5px rgba(255,255,255,0.05);
+    }
+    .milestone h4 {
+      margin: 0 0 10px 0;
+      color: #79c0ff;
+    }
+    .milestone ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .milestone li {
+      margin-bottom: 6px;
+    }
+    .copy-status {
+      margin-top: 8px;
+      font-size: 0.85em;
+      display: none;
+    }
+    .success {
+      color: #2ea043;
+    }
+    .failure {
+      color: #f85149;
+    }
+    .dark-card {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: inset 0 0 5px rgba(255,255,255,0.05);
+    }
+    /* Matches style of other collapsible content sections */
+#iterationsOutput {
+  margin-top: 15px;
+  padding: 15px;
+  background: #0d1117;
+  border-radius: 12px;
+  line-height: 1.6;
+  font-size: 0.95em;
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.05);
+}
+/* Small helper styles for the cost section */
+  .cost-set {
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 12px;
+  }
+  .cost-set h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.95em;
+    color: #79c0ff;
+  }
+  .cost-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+  .sep-line {
+    height: 1px;
+    background: rgba(255,255,255,0.04);
+    margin: 10px 0;
+    border-radius: 2px;
+  }
+  .small-hint {
+    font-size: 0.8em;
+    color: #8b949e;
+    margin-top:6px;
+  }
+  .input-inline {
+    display:flex;
+    flex-direction:column;
+  }
+  .nav-container {
+    max-width: 950px; /* same as .container */
+    margin: 0 auto 20px auto;
+    background: #161b22;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .nav-toggle {
+    width: 100%;
+    padding: 14px;
+    background: #21262d;
+    border: none;
+    color: #e6edf3;
+    font-size: 1.1em;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.3s ease;
+  }
+  .nav-toggle:hover {
+    background: #2d333b;
+  }
+  .nav-menu {
+    max-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: max-height 0.4s ease;
+  }
+  .nav-menu a {
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #e6edf3;
+    transition: background 0.2s ease;
+  }
+  .nav-menu a:hover {
+    background: #238636;
+    color: #fff;
+  }
+  .nav-container.active .nav-menu {
+    max-height: 200px; /* enough for 2–3 links */
+  }
+  </style>
+  
+</head>
+<body>
+<!-- Navigation Menu -->
+<div class="nav-container">
+  <button class="nav-toggle">☰ Menu</button>
+  <nav class="nav-menu">
+    <a href="index.html">🏠 Home</a>
+    <a href="elixir-calculator.html">⚔️ Elixir/Dark Elixir</a>
+  </nav>
+</div>
+  <div class="container">
+    <div class="header">
+      <h1>Clan Castle XP Calculator</h1>
+      <div class="sub">Live preview, per-level breakdown, and days required</div>
+    </div>
+
+    <!-- Initial & Last Levels -->
+    <div class="section">
+      <div class="grid">
+        <div class="group">
+          <label for="initialLevel">Initial Level (≥ 0)</label>
+          <input type="number" id="initialLevel" min="0" step="1" value="0" />
+          <div id="initialWarning" class="hint"></div>
+        </div>
+        <div class="group">
+          <label for="lastLevel">Last Level (≤ 500 &gt; Initial)</label>
+          <input type="number" id="lastLevel" max="500" step="1" value="1" />
+          <div id="lastWarning" class="hint"></div>
+        </div>
+      </div>
+      <div id="livePreview" style="margin-top:10px;">
+        <span id="previewXP" class="pill" style="display:none;">⭐ XP Required: <span id="previewXPVal"></span></span>
+      </div>
+    </div>
+
+    <!-- Clan Castle Levels -->
+<div class="section dark-card">
+  <button type="button" class="collapsible">Clan Castle Levels (counts · 0–50)</button>
+  <div class="content">
+    <div id="ccGrid" class="grid"></div>
+    <div class="hint" id="ccWarning"></div>
+  </div>
+</div>
+
+    <!-- Iterations per Day -->
+    <div class="section">
+      <div class="grid">
+        <div class="group">
+          <label for="iterations">Iterations per Day (≥ 1)</label>
+          <input type="number" id="iterations" min="1" step="1" value="1" />
+          <div id="iterWarning" class="hint"></div>
+        </div>
+      </div>
+
+      <!-- Live Summary -->
+      <div class="summary">
+        <div class="card">
+          <h4>XP Gained per Iteration</h4>
+          <div id="statXPIter" class="stat">—</div>
+        </div>
+        <div class="card">
+          <h4>XP Gained per Day</h4>
+          <div id="statXPD" class="stat">—</div>
+        </div>
+        <div class="card">
+          <h4>Days Required</h4>
+          <div id="statDays" class="stat">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step-by-step breakdown -->
+    <div class="section">
+      <h3 style="margin:0 0 10px 0;">Step-by-Step Breakdown (per iteration)</h3>
+      <div id="breakdown" class="breakdown"></div>
+    </div>
+
+    <!-- Final output -->
+    <button id="submitBtn" class="btn" disabled>Submit</button>
+    <button id="copyBtn" class="btn" style="display:none;">Copy Results</button>
+    <div id="copyStatus" class="copy-status"></div>
+    <div id="output" class="output"></div>
+
+        <!-- Milestones -->
+    <div class="section">
+      <div id="milestones" class="milestone" style="display:none;">
+        <h4>Milestones (every 10 levels)</h4>
+        <ul id="milestoneList"></ul>
+      </div>
+    </div>
+    
+    <!-- Elixir / Dark Elixir Cost Calculator (collapsible) -->
+<div class="section dark-card">
+  <button type="button" class="collapsible">Calculate Elixir / Dark Elixir Cost (per iteration / day / total)</button>
+  <div class="content" id="costCalcContent">
+    <div id="costWarnings" class="hint" style="display:none;"></div>
+
+    <div id="costSetsContainer" style="margin-top:12px;"></div>
+
+    <div style="margin-top:12px;">
+      <button id="calcCostBtn" class="btn">Calculate Cost</button>
+      <button id="copyCostBtn" class="btn" style="display:none;">Copy Cost Results</button>
+      <div id="copyCostStatus" class="copy-status"></div>
+    </div>
+
+    <div id="costOutput" class="output" style="display:none; margin-top:12px;"></div>
+  </div>
+</div>
+
+    <!-- New Collapsible Section for Iterations per Day -->
+<div class="section dark-card">
+  <button type="button" class="collapsible">Calculate Iterations per Day (given Days Required)</button>
+  <div class="content">
+    <div class="grid">
+      <div class="group">
+        <label for="daysRequired">Days Required (≥ 1)</label>
+        <input type="number" id="daysRequired" min="1" step="1" value="1" />
+        <div id="daysWarning" class="hint"></div>
+      </div>
+    </div>
+    <button id="calcIterationsBtn" class="btn">Calculate Iterations</button>
+    <button id="copyIterationsBtn" class="btn" style="display:none;">Copy Iterations Results</button>
+    <div id="copyIterationsStatus" class="copy-status"></div>
+    <div id="iterationsOutput" class="output" style="display:none;"></div>
+  </div>
+</div>
+
+  </div>
+
+
+
+  <script>
+    const CC_XP = [0, 10, 15, 20, 30, 35, 70, 75, 80, 85, 90, 95, 125, 130];
+    const CC_TH = [0, 2, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+    function xpFromClanCastle(level, count) {
+      if (level === 1) return 10 * count;
+      if (level === 2) return 15 * count;
+      if (level === 3) return 20 * count;
+      return CC_XP[level] * count;
+    }
+
+    const ccGrid = document.getElementById('ccGrid');
+    for (let i = 1; i <= 13; i++) {
+      const group = document.createElement('div');
+      group.className = 'group';
+      const label = document.createElement('label');
+      label.htmlFor = `cc${i}`;
+      label.textContent = `Clan Castle Level ${i} (TH${CC_TH[i]}) · ${CC_XP[i]} XP each`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.max = '50';
+      input.step = '1';
+      input.value = '0';
+      input.id = `cc${i}`;
+      input.addEventListener('input', validateAll);
+      group.appendChild(label);
+      group.appendChild(input);
+      ccGrid.appendChild(group);
+    }
+
+    function xpForNextLevel(level) {
+      if (level === 1) return 30;
+      if (level >= 2 && level <= 200) return (level - 1) * 50;
+      if (level >= 201 && level <= 299) return (level - 200) * 500 + 9500;
+      if (level >= 300) return (level - 300) * 1000 + 60000;
+      return 0;
+    }
+
+    function xpr(a, b) {
+      let total = 0;
+      for (let lvl = a; lvl < b; lvl++) {
+        total += xpForNextLevel(lvl);
+      }
+      return total;
+    }
+
+    function validateAll() {
+      const initial = parseInt(document.getElementById('initialLevel').value);
+      const last = parseInt(document.getElementById('lastLevel').value);
+      const iterations = parseInt(document.getElementById('iterations').value);
+
+      let valid = true;
+
+      if (isNaN(initial) || initial < 0) {
+        document.getElementById('initialWarning').textContent = "Invalid Initial Level";
+        valid = false;
+      } else {
+        document.getElementById('initialWarning').textContent = "";
+      }
+
+      if (isNaN(last) || last > 500 || last <= initial) {
+        document.getElementById('lastWarning').textContent = "Invalid Last Level";
+        valid = false;
+      } else {
+        document.getElementById('lastWarning').textContent = "";
+      }
+
+      if (isNaN(iterations) || iterations < 1) {
+        document.getElementById('iterWarning').textContent = "Invalid iterations per day";
+        valid = false;
+      } else {
+        document.getElementById('iterWarning').textContent = "";
+      }
+
+      let ccXP = 0;
+      let breakdownText = "";
+      for (let i = 1; i <= 13; i++) {
+        const val = parseInt(document.getElementById(`cc${i}`).value) || 0;
+        if (val < 0 || val > 50) {
+          document.getElementById('ccWarning').textContent = "Each Clan Castle Level must be between 0 and 50";
+          valid = false;
+        }
+        const gained = xpFromClanCastle(i, val);
+        if (val > 0) {
+          breakdownText += `Level ${i} (TH${CC_TH[i]}): ${val} × ${CC_XP[i]} = ${gained} XP<br>`;
+        }
+        ccXP += gained;
+      }
+      document.getElementById('ccWarning').textContent = valid ? "" : document.getElementById('ccWarning').textContent;
+
+      let xpRequired = (valid ? xpr(initial, last) : 0);
+
+      if (valid) {
+        document.getElementById('previewXP').style.display = "inline-block";
+        document.getElementById('previewXPVal').textContent = xpRequired.toLocaleString();
+      } else {
+        document.getElementById('previewXP').style.display = "none";
+      }
+
+      document.getElementById('statXPIter').textContent = ccXP > 0 ? ccXP.toLocaleString() : "—";
+      document.getElementById('statXPD').textContent = (ccXP > 0 && iterations > 0) ? (ccXP * iterations).toLocaleString() : "—";
+      document.getElementById('statDays').textContent = (ccXP > 0 && xpRequired > 0 && iterations > 0) ? Math.ceil(xpRequired / (ccXP * iterations)) : "—";
+
+      document.getElementById('breakdown').innerHTML = breakdownText || "No Clan Castle XP selected";
+
+      // Milestones
+      const milestoneDiv = document.getElementById('milestones');
+      const milestoneList = document.getElementById('milestoneList');
+      milestoneList.innerHTML = "";
+      if (valid && ccXP > 0 && iterations > 0) {
+        for (let lvl = Math.ceil((initial+1)/10)*10; lvl <= last; lvl += 10) {
+          let xpToLvl = xpr(initial, lvl);
+          let daysToLvl = Math.ceil(xpToLvl / (ccXP * iterations));
+          let li = document.createElement("li");
+          li.textContent = `Level ${lvl}: ~${daysToLvl.toLocaleString()} days`;
+          milestoneList.appendChild(li);
+        }
+        milestoneDiv.style.display = "block";
+      } else {
+        milestoneDiv.style.display = "none";
+      }
+
+      document.getElementById('submitBtn').disabled = !valid;
+    }
+
+    document.getElementById('initialLevel').addEventListener('input', validateAll);
+    document.getElementById('lastLevel').addEventListener('input', validateAll);
+    document.getElementById('iterations').addEventListener('input', validateAll);
+
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      const initial = parseInt(document.getElementById('initialLevel').value);
+      const last = parseInt(document.getElementById('lastLevel').value);
+      const iterations = parseInt(document.getElementById('iterations').value);
+      const xpRequired = xpr(initial, last);
+      const xpIter = parseInt(document.getElementById('statXPIter').textContent.replace(/,/g, "")) || 0;
+      const xpDay = xpIter * iterations;
+      const days = Math.ceil(xpRequired / xpDay);
+
+      // Collect input summary with emojis
+  let inputsSummary = `
+    <strong>User Input:</strong><br>
+    🎯 Initial Level: ${initial}<br>
+    🏆 Last Level: ${last}<br>
+    🔁 Iterations per Day: ${iterations}<br>
+  `;
+
+  for (let i = 1; i <= 13; i++) {
+    const val = parseInt(document.getElementById(`cc${i}`).value) || 0;
+    if (val > 0) {
+      inputsSummary += `🏰 Clan Castle Level ${i} (TH${CC_TH[i]}): ${val}<br>`;
+    }
+  }
+
+  const resultsSummary = `
+    <br><strong>Results:</strong><br>
+    ⭐ XP Required: ${xpRequired.toLocaleString()}<br>
+    📊 XP per Iteration: ${xpIter.toLocaleString()}<br>
+    📅 XP per Day: ${xpDay.toLocaleString()}<br>
+    ⏳ Days Required: ${days.toLocaleString()}
+  `;
+
+      document.getElementById('output').innerHTML = inputsSummary + resultsSummary;
+      document.getElementById('copyBtn').style.display = "inline-block";
+    });
+
+    // Copy to Clipboard with mobile fallback
+// Copy Results for Iterations Calculator
+document.getElementById("copyIterationsBtn").addEventListener("click", () => {
+  const outputText = document.getElementById("iterationsOutput").innerText.trim();
+  const statusDiv = document.getElementById("copyIterationsStatus");
+
+  if (!outputText) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(outputText).then(() => {
+      statusDiv.textContent = "Copied to clipboard!";
+      statusDiv.className = "copy-status success";
+      statusDiv.style.display = "block";
+    }).catch(() => {
+      fallbackCopy(outputText, statusDiv);
+    });
+  } else {
+    fallbackCopy(outputText, statusDiv);
+  }
+
+  setTimeout(() => {
+    statusDiv.style.display = "none";
+  }, 2000);
+});
+
+// <<< ADDED: Copy Results handler for the main Submit output button >>>
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const outputText = document.getElementById("output").innerText.trim();
+  const statusDiv = document.getElementById("copyStatus");
+
+  if (!outputText) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(outputText).then(() => {
+      statusDiv.textContent = "Copied to clipboard!";
+      statusDiv.className = "copy-status success";
+      statusDiv.style.display = "block";
+    }).catch(() => {
+      fallbackCopy(outputText, statusDiv);
+    });
+  } else {
+    fallbackCopy(outputText, statusDiv);
+  }
+
+  setTimeout(() => {
+    statusDiv.style.display = "none";
+  }, 2000);
+});
+// <<< end added handler >>>
+
+function fallbackCopy(text, statusDiv) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed"; // Prevent scrolling to bottom
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      statusDiv.textContent = "Copied to clipboard!";
+      statusDiv.className = "copy-status success";
+    } else {
+      statusDiv.textContent = "Failed to copy!";
+      statusDiv.className = "copy-status failure";
+    }
+  } catch (err) {
+    statusDiv.textContent = "Failed to copy!";
+    statusDiv.className = "copy-status failure";
+  }
+
+  statusDiv.style.display = "block";
+  document.body.removeChild(textarea);
+}
+
+    document.querySelectorAll(".collapsible").forEach(btn => {
+  btn.addEventListener("click", function() {
+    this.classList.toggle("active");
+    const content = this.nextElementSibling;
+    content.style.display = content.style.display === "block" ? "none" : "block";
+  });
+});
+
+document.getElementById('calcIterationsBtn').addEventListener('click', () => {
+  const initial = parseInt(document.getElementById('initialLevel').value);
+  const last = parseInt(document.getElementById('lastLevel').value);
+  const daysRequired = parseInt(document.getElementById('daysRequired').value);
+
+  if (isNaN(daysRequired) || daysRequired < 1) {
+    document.getElementById('daysWarning').textContent = "Invalid days required";
+    return;
+  } else {
+    document.getElementById('daysWarning').textContent = "";
+  }
+
+  const xpRequired = xpr(initial, last);
+
+  let ccXP = 0;
+  let inputsSummary = `
+    <strong>User Input:</strong><br>
+    🎯 Initial Level: ${initial}<br>
+    🏆 Last Level: ${last}<br>
+    📅 Days Required: ${daysRequired}<br>
+  `;
+  for (let i = 1; i <= 13; i++) {
+    const val = parseInt(document.getElementById(`cc${i}`).value) || 0;
+    if (val > 0) {
+      inputsSummary += `🏰 Clan Castle Level ${i} (TH${CC_TH[i]}): ${val}<br>`;
+    }
+    ccXP += xpFromClanCastle(i, val);
+  }
+
+  let iterationsPerDay = 0;
+  let xpDay = 0;
+  if (ccXP > 0 && xpRequired > 0) {
+    iterationsPerDay = Math.ceil(xpRequired / (ccXP * daysRequired));
+    xpDay = ccXP * iterationsPerDay;
+  }
+
+  const outputDiv = document.getElementById('iterationsOutput');
+  outputDiv.style.display = "block";
+  outputDiv.innerHTML = `
+    ${inputsSummary}
+    <br><strong>Results:</strong><br>
+    ⭐ XP Required: ${xpRequired.toLocaleString()}<br>
+    📊 XP per Iteration: ${ccXP.toLocaleString()}<br>
+    📅 XP per Day: ${xpDay.toLocaleString()}<br>
+    ⏳ Days Required: ${daysRequired.toLocaleString()}<br>
+    🔁 Iterations per Day Needed: ${iterationsPerDay.toLocaleString()}
+  `;
+
+  document.getElementById("copyIterationsBtn").style.display = "inline-block";
+});
+
+
+
+
+    validateAll();
+  </script>
+  <script>
+(function(){
+  // Housing space mapping per CC level (Troops - Spells - Siege)
+  const HOUSING = {
+    1: {troops:10, spells:0, siege:0},
+    2: {troops:15, spells:0, siege:0},
+    3: {troops:20, spells:0, siege:0},
+    4: {troops:25, spells:1, siege:0},
+    5: {troops:30, spells:1, siege:0},
+    6: {troops:35, spells:1, siege:1},
+    7: {troops:35, spells:2, siege:1},
+    8: {troops:40, spells:2, siege:1},
+    9: {troops:45, spells:2, siege:1},
+    10:{troops:45, spells:3, siege:1},
+    11:{troops:50, spells:3, siege:1},
+    12:{troops:50, spells:3, siege:2},
+    13:{troops:55, spells:3, siege:2}
+  };
+
+  // utility
+  function safeInt(v){ const n = parseInt(v); return isNaN(n)?0:n; }
+  function fmt(n){ return (typeof n === 'number') ? n.toLocaleString() : n; }
+
+  // container elements
+  const costSetsContainer = document.getElementById('costSetsContainer');
+  const costOutput = document.getElementById('costOutput');
+  const calcCostBtn = document.getElementById('calcCostBtn');
+  const copyCostBtn = document.getElementById('copyCostBtn');
+  const copyCostStatus = document.getElementById('copyCostStatus');
+  const costWarnings = document.getElementById('costWarnings');
+
+  // Build input sets based on non-zero CC counts (#cc1..#cc13)
+  function buildCostSets(){
+    costSetsContainer.innerHTML = '';
+    costWarnings.style.display = 'none';
+    for (let level = 1; level <= 13; level++){
+      const countEl = document.getElementById(`cc${level}`);
+      if (!countEl) continue;
+      const count = safeInt(countEl.value);
+      if (count <= 0) continue;
+
+      const housing = HOUSING[level];
+      const setDiv = document.createElement('div');
+      setDiv.className = 'cost-set';
+      setDiv.id = `costSetCC${level}`;
+
+      const h = document.createElement('h4');
+      h.textContent = `Clan Castle Level ${level} (TH${(typeof CC_TH !== 'undefined' && CC_TH[level]) ? CC_TH[level] : '?'}) — Count: ${count}`;
+      setDiv.appendChild(h);
+
+      // Create rows of inputs
+      const row = document.createElement('div');
+      row.className = 'cost-row';
+
+      // Troops: elixir + dark (dark hidden if level <= 3)
+      const troopCol = document.createElement('div'); troopCol.className='input-inline';
+      troopCol.innerHTML = `<label>Elixir Troops Housing (0–${housing.troops})</label>
+        <input type="number" min="0" step="1" id="cost_cc${level}_et" value="${housing.troops}">`;
+      row.appendChild(troopCol);
+
+      if (housing.troops > 0 && level > 3) {
+        const dtCol = document.createElement('div'); dtCol.className='input-inline';
+        dtCol.innerHTML = `<label>Dark Troops Housing (0–${housing.troops})</label>
+          <input type="number" min="0" step="1" id="cost_cc${level}_dt" value="0">`;
+        row.appendChild(dtCol);
+      } else {
+        // Keep empty column to maintain layout if spells/siege present later
+        if (housing.troops > 0) {
+          const spacer = document.createElement('div'); spacer.className='input-inline';
+          row.appendChild(spacer);
+        }
+      }
+
+      // Spells: elixir + dark (dark hidden if level <= 3)
+      if (housing.spells > 0) {
+        const espCol = document.createElement('div'); espCol.className='input-inline';
+        espCol.innerHTML = `<label>Elixir Spells Housing (0–${housing.spells})</label>
+          <input type="number" min="0" step="1" id="cost_cc${level}_es" value="${housing.spells}">`;
+        row.appendChild(espCol);
+
+        if (level > 3) {
+          const dspCol = document.createElement('div'); dspCol.className='input-inline';
+          dspCol.innerHTML = `<label>Dark Spells Housing (0–${housing.spells})</label>
+            <input type="number" min="0" step="1" id="cost_cc${level}_ds" value="0">`;
+          row.appendChild(dspCol);
+        } else {
+          const spacer = document.createElement('div'); spacer.className='input-inline';
+          row.appendChild(spacer);
+        }
+      } else {
+        // If zero spells capacity add empty placeholders (to keep grid consistent)
+        const spacer1 = document.createElement('div'); spacer1.className='input-inline';
+        const spacer2 = document.createElement('div'); spacer2.className='input-inline';
+        row.appendChild(spacer1);
+        row.appendChild(spacer2);
+      }
+
+      // Siege machines: only if housing.siege > 0 and level > 5
+      if (housing.siege > 0 && level > 5) {
+        const siegeCol = document.createElement('div'); siegeCol.className='input-inline';
+        siegeCol.innerHTML = `<label>Siege Machines Housing (0–${housing.siege})</label>
+          <input type="number" min="0" step="1" id="cost_cc${level}_siege" value="${housing.siege}">`;
+        row.appendChild(siegeCol);
+      } else if (housing.siege > 0) {
+        // show placeholder if siege exists but hidden by level constraints
+        const spacer = document.createElement('div'); spacer.className='input-inline';
+        row.appendChild(spacer);
+      } else {
+        // placeholder
+        const spacer = document.createElement('div'); spacer.className='input-inline';
+        row.appendChild(spacer);
+      }
+
+      setDiv.appendChild(row);
+
+      // small instruction/hint (validation messages per set)
+      const hint = document.createElement('div');
+      hint.className = 'small-hint';
+      hint.id = `cost_cc${level}_hint`;
+      hint.textContent = `Troop cap: ${housing.troops}, Spell cap: ${housing.spells}, Siege cap: ${housing.siege}`;
+      setDiv.appendChild(hint);
+
+      // append separator
+      const sep = document.createElement('div'); sep.className = 'sep-line';
+      setDiv.appendChild(sep);
+
+      costSetsContainer.appendChild(setDiv);
+    }
+
+    // Add listeners to keep inputs within caps and validate sums
+    attachCostListeners();
+  }
+
+  // Keep values in allowed ranges and validate sum constraints
+  function attachCostListeners(){
+    for (let level = 1; level <= 13; level++){
+      const setDiv = document.getElementById(`costSetCC${level}`);
+      if (!setDiv) continue;
+      const housing = HOUSING[level];
+
+      const et = document.getElementById(`cost_cc${level}_et`);
+      const dt = document.getElementById(`cost_cc${level}_dt`);
+      const es = document.getElementById(`cost_cc${level}_es`);
+      const ds = document.getElementById(`cost_cc${level}_ds`);
+      const siege = document.getElementById(`cost_cc${level}_siege`);
+      const hint = document.getElementById(`cost_cc${level}_hint`);
+
+      // helper to clamp and validate
+      function clampAndValidate(){
+        let eTroops = safeInt(et?.value);
+        let dTroops = safeInt(dt?.value);
+        let eSpells = safeInt(es?.value);
+        let dSpells = safeInt(ds?.value);
+        let sSiege  = safeInt(siege?.value);
+
+        // clamp each by its individual maxima
+        if (et) { if (eTroops < 0) eTroops = 0; if (eTroops > housing.troops) eTroops = housing.troops; et.value = eTroops; }
+        if (dt) { if (dTroops < 0) dTroops = 0; if (dTroops > housing.troops) dTroops = housing.troops; dt.value = dTroops; }
+        if (es) { if (eSpells < 0) eSpells = 0; if (eSpells > housing.spells) eSpells = housing.spells; es.value = eSpells; }
+        if (ds) { if (dSpells < 0) dSpells = 0; if (dSpells > housing.spells) dSpells = housing.spells; ds.value = dSpells; }
+        if (siege){ if (sSiege < 0) sSiege = 0; if (sSiege > housing.siege) sSiege = housing.siege; siege.value = sSiege; }
+
+        // enforce sum constraints: elixir+dark <= troops capacity
+        let troopSum = eTroops + dTroops;
+        let spellSum = eSpells + dSpells;
+        let messages = [];
+        if (troopSum > housing.troops) messages.push(`Troops total (${troopSum}) exceeds troop capacity (${housing.troops}).`);
+        if (spellSum > housing.spells) messages.push(`Spells total (${spellSum}) exceeds spell capacity (${housing.spells}).`);
+        // show messages
+        hint.textContent = messages.length ? messages.join(' ') : `Troop cap: ${housing.troops}, Spell cap: ${housing.spells}, Siege cap: ${housing.siege}`;
+        hint.style.color = messages.length ? '#f85149' : '#8b949e';
+      }
+
+      // attach listeners where elements exist
+      [et, dt, es, ds, siege].forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', clampAndValidate);
+      });
+    }
+  }
+
+  // Calculation logic (cost formulas)
+  function ceilHalf(n){ return Math.ceil(n/2); }
+
+  // troop costs per housing:
+  // elixir troops: 3000 per 2 housing -> ceil(h/2)*3000
+  // dark troops: 45 per 2 housing -> ceil(h/2)*45
+  // spells: elixir 9000 per housing, dark 135 per housing
+  // siege: 45000 per housing (elixir only)
+
+  function calculateCosts(){
+    costOutput.style.display = 'none';
+    copyCostBtn.style.display = 'none';
+    copyCostStatus.style.display = 'none';
+    costWarnings.style.display = 'none';
+    costWarnings.textContent = '';
+
+    // validate presence of at least one non-zero CC
+    let anyNonZero = false;
+    let totalElixirPerIter = 0;
+    let totalDarkPerIter = 0;
+
+    // read core data
+    const initial = safeInt(document.getElementById('initialLevel').value);
+    const last = safeInt(document.getElementById('lastLevel').value);
+    const iterationsPerDay = Math.max(1, safeInt(document.getElementById('iterations').value));
+
+    // compute xpRequired and per-iteration XP same as main calculator
+    const xpRequired = (typeof xpr === 'function') ? xpr(initial, last) : 0;
+
+    // compute ccXP and ensure no division by zero for further days calc
+    let ccXP = 0;
+    for (let level=1; level<=13; level++){
+      const count = safeInt(document.getElementById(`cc${level}`)?.value || 0);
+      if (count>0) ccXP += xpFromClanCastle(level, count);
+    }
+
+    // days required according to main calculator
+    let daysToGoal = (ccXP > 0 && xpRequired > 0) ? Math.ceil(xpRequired / (ccXP * iterationsPerDay)) : 0;
+
+    // iterate through sets
+    for (let level=1; level<=13; level++){
+      const count = safeInt(document.getElementById(`cc${level}`)?.value || 0);
+      if (count <= 0) continue;
+      anyNonZero = true;
+      const housing = HOUSING[level];
+
+      const eTroops = safeInt(document.getElementById(`cost_cc${level}_et` )?.value || 0);
+      const dTroops = safeInt(document.getElementById(`cost_cc${level}_dt` )?.value || 0);
+      const eSpells = safeInt(document.getElementById(`cost_cc${level}_es` )?.value || 0);
+      const dSpells = safeInt(document.getElementById(`cost_cc${level}_ds` )?.value || 0);
+      const sSiege  = safeInt(document.getElementById(`cost_cc${level}_siege`)?.value || 0);
+
+      // validate constraints again (this will be redundant but safe)
+      if (eTroops + dTroops > housing.troops) {
+        costWarnings.style.display = 'block';
+        costWarnings.textContent = `Error: On CC${level}, troops total exceeds capacity.`;
+        return;
+      }
+      if (eSpells + dSpells > housing.spells) {
+        costWarnings.style.display = 'block';
+        costWarnings.textContent = `Error: On CC${level}, spells total exceeds capacity.`;
+        return;
+      }
+      if (sSiege > housing.siege) {
+        costWarnings.style.display = 'block';
+        costWarnings.textContent = `Error: On CC${level}, siege housing exceeds capacity.`;
+        return;
+      }
+
+      // compute costs per one CC (single unit)
+      // troops:
+      const elixirTroopCostSingle = ceilHalf(eTroops) * 3000;
+      const darkTroopCostSingle   = ceilHalf(dTroops) * 45;
+      // spells:
+      const elixirSpellCostSingle = eSpells * 9000;
+      const darkSpellCostSingle   = dSpells * 135;
+      // siege:
+      const siegeCostSingle       = sSiege * 45000;
+
+      // multiply by number of that CC level (count)
+      const elixirForThisLevelPerIter = (elixirTroopCostSingle + elixirSpellCostSingle + siegeCostSingle) * count;
+      const darkForThisLevelPerIter   = (darkTroopCostSingle + darkSpellCostSingle) * count;
+
+      totalElixirPerIter += elixirForThisLevelPerIter;
+      totalDarkPerIter   += darkForThisLevelPerIter;
+    }
+
+    if (!anyNonZero){
+      costWarnings.style.display = 'block';
+      costWarnings.textContent = 'No non-zero Clan Castle levels selected. Add counts in the Clan Castle Levels section.';
+      return;
+    }
+
+    // per day and total to reach goal
+    const elixirPerDay = totalElixirPerIter * iterationsPerDay;
+    const darkPerDay   = totalDarkPerIter * iterationsPerDay;
+    const totalElixirToGoal = totalElixirPerIter * iterationsPerDay * daysToGoal;
+    const totalDarkToGoal   = totalDarkPerIter * iterationsPerDay * daysToGoal;
+
+    // prepare input summary (mimicking others, with emojis)
+    let inputLines = [];
+    inputLines.push(`🎯 Initial Level: ${initial}`);
+    inputLines.push(`🏆 Last Level: ${last}`);
+    inputLines.push(`🔁 Iterations per Day (used): ${iterationsPerDay}`);
+    inputLines.push(`⏳ Days Required (calculated): ${daysToGoal}`);
+    for (let level=1; level<=13; level++){
+      const count = safeInt(document.getElementById(`cc${level}`)?.value || 0);
+      if (count <= 0) continue;
+      // include only values the user entered for that level:
+      const eTroops = safeInt(document.getElementById(`cost_cc${level}_et` )?.value || 0);
+      const dTroops = safeInt(document.getElementById(`cost_cc${level}_dt` )?.value || 0);
+      const eSpells = safeInt(document.getElementById(`cost_cc${level}_es` )?.value || 0);
+      const dSpells = safeInt(document.getElementById(`cost_cc${level}_ds` )?.value || 0);
+      const sSiege  = safeInt(document.getElementById(`cost_cc${level}_siege`)?.value || 0);
+
+      // Build a compact line describing inputs for this CC level
+      let parts = [];
+      if (eTroops) parts.push(`Elix troops: ${eTroops}`);
+      if (dTroops) parts.push(`Dark troops: ${dTroops}`);
+      if (eSpells) parts.push(`Elix spells: ${eSpells}`);
+      if (dSpells) parts.push(`Dark spells: ${dSpells}`);
+      if (sSiege)  parts.push(`Siege: ${sSiege}`);
+      if (parts.length) {
+        inputLines.push(`🏰 CC${level} (count ${safeInt(document.getElementById(`cc${level}`).value)}): ${parts.join(' · ')}`);
+      } else {
+        inputLines.push(`🏰 CC${level} (count ${safeInt(document.getElementById(`cc${level}`).value)}): (all zeros)`);
+      }
+    }
+
+    // build output HTML block
+    const outHTML = `
+      <strong>User Input:</strong><br>
+      ${inputLines.map(line => `${line}<br>`).join('')}
+      <br><strong>Results:</strong><br>
+      ⭐ Elixir Required per Iteration: ${fmt(totalElixirPerIter)}<br>
+      🌓 Dark Elixir Required per Iteration: ${fmt(totalDarkPerIter)}<br>
+      📅 Elixir per Day: ${fmt(elixirPerDay)}<br>
+      📅 Dark Elixir per Day: ${fmt(darkPerDay)}<br>
+      🧾 Total Elixir to Reach Goal: ${fmt(totalElixirToGoal)}<br>
+      🧾 Total Dark Elixir to Reach Goal: ${fmt(totalDarkToGoal)}
+    `;
+
+    costOutput.innerHTML = outHTML;
+    costOutput.style.display = 'block';
+    copyCostBtn.style.display = 'inline-block';
+    copyCostStatus.style.display = 'none';
+  }
+
+  // copy handler (re-using fallbackCopy from page if present)
+  function copyCostResults(){
+    const text = costOutput.innerText.trim();
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(() => {
+        copyCostStatus.textContent = 'Copied to clipboard!';
+        copyCostStatus.className = 'copy-status success';
+        copyCostStatus.style.display = 'block';
+      }).catch(()=> {
+        if (typeof fallbackCopy === 'function') {
+          fallbackCopy(text, copyCostStatus);
+        } else {
+          copyCostStatus.textContent = 'Failed to copy!';
+          copyCostStatus.className = 'copy-status failure';
+          copyCostStatus.style.display = 'block';
+        }
+      });
+    } else {
+      if (typeof fallbackCopy === 'function') {
+        fallbackCopy(text, copyCostStatus);
+      } else {
+        // basic fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          copyCostStatus.textContent = 'Copied to clipboard!';
+          copyCostStatus.className = 'copy-status success';
+          copyCostStatus.style.display = 'block';
+        } catch (e) {
+          copyCostStatus.textContent = 'Failed to copy!';
+          copyCostStatus.className = 'copy-status failure';
+          copyCostStatus.style.display = 'block';
+        }
+        document.body.removeChild(ta);
+      }
+    }
+    setTimeout(()=> { copyCostStatus.style.display = 'none'; }, 2000);
+  }
+
+  // build sets initially and rebuild whenever CC counts change
+  function initCostSection(){
+    buildCostSets();
+    // add listener to all CC inputs to rebuild sets on change
+    for (let i=1;i<=13;i++){
+      const el = document.getElementById(`cc${i}`);
+      if (!el) continue;
+      el.addEventListener('input', () => {
+        buildCostSets();
+      });
+    }
+    // also rebuild when user changes initial/last levels (affects days maybe) — not required but ok
+    const initialEl = document.getElementById('initialLevel');
+    const lastEl = document.getElementById('lastLevel');
+    const iterEl = document.getElementById('iterations');
+    [initialEl, lastEl, iterEl].forEach(e => { if(e) e.addEventListener('input', ()=>{/* no-op but keep sets current */}); });
+
+    // calc & copy handlers
+    calcCostBtn.addEventListener('click', calculateCosts);
+    copyCostBtn.addEventListener('click', copyCostResults);
+  }
+
+  // wait until DOM is ready (if script placed at bottom it's fine)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCostSection);
+  } else {
+    initCostSection();
+  }
+
+})();
+</script>
+
+</body>
+</html>
